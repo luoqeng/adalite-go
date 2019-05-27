@@ -26,7 +26,6 @@ const ccDefault = "a2e99f1b14846d65c55027e8fe51892ce405d51da117088a6931a3690d211
 const fromAddressDefault = "Ae2tdPwUPEZE5ee2jWiAm1n1yegos5EbLKBNzenTUgfC9ey2bh9aRUiMoqD"
 const toAddressDefault = "DdzFFzCqrht7rRLbKVHL6k7GaSkmPQjV7QS7j9S9fEXivq1SqziA7bTQdiBPMpBG9iJLzu8zmeaxw4iNspiD6nxdraXPPtNmKcLKxXeo"
 
-const fee = 200000
 const txSignMessagePrefix = "011a2d964a095820"
 
 var seed, pub, cc, xpub []byte
@@ -37,7 +36,9 @@ func main() {
 	seedStr := flag.String("seed", seedDefault, "from seed")
 	ccStr := flag.String("cc", ccDefault, "chain code")
 	fAmount := flag.Float64("coins", 1.0, "to amount")
+	fFee := flag.Float64("fee", 0.2, "fee")
 	toAddress := flag.String("address", toAddressDefault, "to address")
+	relay := flag.Bool("relay", true, "broadcast")
 	flag.Parse()
 
 	seed, err := hex.DecodeString(*seedStr)
@@ -66,6 +67,7 @@ func main() {
 	)
 
 	amount := uint64(*fAmount * 1000000)
+	fee := uint64(*fFee * 1000000)
 	for _, in := range utxo {
 		if coins < amount+fee {
 			fmt.Printf("cuId: %s\n", in.TxHash)
@@ -109,6 +111,10 @@ func main() {
 	fmt.Printf("txHash: %x\n", txHash)
 	fmt.Printf("txBody: %x\n", txBody)
 	fmt.Println()
+
+	if !*relay {
+		return
+	}
 
 	err = tx.Broadcast(tx.NodeAddr, hex.EncodeToString(txHash), hex.EncodeToString(txBody))
 	if err != nil {
